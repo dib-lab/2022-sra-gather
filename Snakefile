@@ -27,7 +27,7 @@ rule summarize_sample:
         summary = 'results/{sample}.summary.csv',
         runinfo = 'results/{sample}.runinfo.csv',
     shell: """
-        ./summarize-sample.py {wildcards.sample} {input.gather_out} \
+        ./scripts/summarize-sample.py {wildcards.sample} {input.gather_out} \
             {input.gather_csv} -o {output.summary} -S {output.runinfo}
     """
 
