@@ -214,3 +214,46 @@ wrapper.rf <- function(x, y, ntree = 500,
 
   return(rf)
 }
+
+ggplotConfusionMatrix <- function(m, plot_title = NULL){
+  library(caret)
+  library(ggplot2)
+  library(scales)
+  library(tidyr)
+  mycaption <- paste("Accuracy", percent_format()(m$overall[1]),
+                     "Kappa", percent_format()(m$overall[2]))
+  #mycaption <- paste("Accuracy", percent_format()(m$overall[1]))
+  p <-
+    ggplot(data = as.data.frame(m$table) ,
+           aes(x = Reference, y = Prediction)) +
+    geom_tile(aes(fill = log(Freq)), colour = "white") +
+    scale_fill_gradient(low = "white", high = "steelblue") +
+    geom_text(aes(x = Reference, y = Prediction, label = Freq)) +
+    theme_minimal() +
+    theme(legend.position = "none", 
+          text = element_text(size = 9),
+          axis.text.x = element_text(angle = 90, vjust = 2),
+          axis.text = element_text(size = 7),
+          plot.title = element_text(hjust = 0.5)) +
+    labs(caption = mycaption, title = plot_title)
+  return(p)
+}
+
+evaluate_model <- function(optimal_ranger, data, reference_class, plt_title) {
+  library(ranger)
+  library(readr)
+  
+  # calculate prediction accuracy
+  pred <- predict(optimal_ranger, data)
+  pred_tab <- table(observed = reference_class, predicted = pred$predictions)
+  #print(pred_tab)
+  
+  # calculate performance
+  performance <- sum(diag(pred_tab)) / sum(pred_tab)
+  #print(paste0("ACCURACY = ", performance))
+
+  # plot pretty confusion matrix
+  cm <- caret::confusionMatrix(data = pred$predictions, reference = reference_class)
+  ggplotConfusionMatrix(cm, plot_title = plt_title)
+  # ggsave(filename = confusion_pdf, plot = plt, scale = 1, width = 6, height = 4, dpi = 300)
+}
